@@ -9,14 +9,17 @@ lcd = new LCDPLATE(1, 0x20);
 // Setup the sensor input
 const mcpadc = require('mcp-spi-adc');
 
-let value = -1;;
+let value = -1;
 
 const moistureSensor = mcpadc.open(5, {speedHz: 20000}, (err) => {
   if (err) throw err;
 
   const getReading = function() {
     return moistureSensor.read((err, reading) => {
-      if (err) throw err;
+      if (err) {
+        lcd.close();
+        throw err;
+      }
 
       if (value !== reading.rawValue) {
         value = reading.rawValue;
