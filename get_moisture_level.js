@@ -41,8 +41,10 @@ const moistureSensor = mcpadc.open(5, {speedHz: 20000}, (err) => {
         let docDate = new Date();
         let docRef = dbRef.collection('moisture-levels').doc(docDate.toString());
 
+console.log(new Date(docDate.toString()));
         let addData = docRef.set({
-	  "level": value
+	  "level": value,
+	  "createdOn": new Date(docDate.toString()),
         }).then(ref => {
 	  console.log('Added document with ID: ', ref);
         });
@@ -53,7 +55,7 @@ const moistureSensor = mcpadc.open(5, {speedHz: 20000}, (err) => {
   };
 
   getReading();
-  setInterval(getReading, 10000);
+  setInterval(getReading, 600000);
 });
 
 function updateDatabase() {
