@@ -9,7 +9,7 @@ lcd = new LCDPLATE(1, 0x20);
 // Setup the sensor input
 const mcpadc = require('mcp-spi-adc');
 
-let value = (-1).toFixed(2);
+let value = -1;;
 
 const moistureSensor = mcpadc.open(5, {speedHz: 20000}, (err) => {
   if (err) throw err;
@@ -18,15 +18,15 @@ const moistureSensor = mcpadc.open(5, {speedHz: 20000}, (err) => {
     return moistureSensor.read((err, reading) => {
       if (err) throw err;
 
-      if (value !== reading.value.toFixed(2)) {
-        value = reading.value.toFixed(2);
+      if (value !== reading.rawValue) {
+        value = reading.rawValue;
 
         lcd.clear();
 
-        if (value >= 0.75) {
+        if (value >= 75) {
           lcd.backlight(lcd.colors.GREEN);
 	  lcd.message("Happy: " + value.toString());
-        } else if (value >= 0.4 && value < 0.75) {
+        } else if (value >= 40 && value < 75) {
 	  lcd.backlight(lcd.colors.YELLOW);
 	  lcd.message("Okayish: " + value.toString());
         } else {
@@ -50,7 +50,7 @@ const moistureSensor = mcpadc.open(5, {speedHz: 20000}, (err) => {
   };
 
   getReading();
-  setInterval(getReading, 3600000);
+  setInterval(getReading, 10000);
 });
 
 function updateDatabase() {
