@@ -38,14 +38,12 @@ const moistureSensor = mcpadc.open(5, {speedHz: 20000}, (err) => {
         }
 
         // Store the value in a Firebase Firestore database
-        let docDate = new Date();
-        let docRef = dbRef.collection('moisture-levels').doc(docDate.toString());
+        let docRef = dbRef.collection('moisture-levels').doc(new Date().toString());
 
-console.log(new Date(docDate.toString()));
         let addData = docRef.set({
 	  "level": value,
-	  "createdOn": new Date(docDate.toString()),
-        }).then(ref => {
+	  "createdOn": new Date(),
+        }).then(ref => {	
 	  console.log('Added document with ID: ', ref);
         });
 
@@ -55,7 +53,7 @@ console.log(new Date(docDate.toString()));
   };
 
   getReading();
-  setInterval(getReading, 600000);
+  setInterval(getReading, 28800000);
 });
 
 function updateDatabase() {
