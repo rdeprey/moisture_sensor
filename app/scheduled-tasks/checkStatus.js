@@ -12,14 +12,14 @@ const shouldWaterPlant = () => {
         const shouldWater = MoistureLevel.shouldWater(moistureLevel);
 
         if (shouldWater) {
-            // Water the plant for five seconds
+            // Water the plant for three seconds
             setTimeout(() => {
                 MoistureLevel.waterThePlant();
 
                 setTimeout(() => {
                     MoistureLevel.stopWateringPlant();
-                }, 5000);
-            }, 5000);
+                }, 3000);
+            }, 3000);
         }
     });
 };
