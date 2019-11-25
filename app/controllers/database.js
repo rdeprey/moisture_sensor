@@ -1,16 +1,11 @@
-const dbRef = connectToFirebase();
+const admin = require('firebase-admin');
+let serviceAccount = require('../credentials/serviceAccountKey.json');
 
-const connectToFirebaseDb = () => {
-    const admin = require('firebase-admin');
-  
-    let serviceAccount = require('../credentials/serviceAccountKey.json');
-  
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
-  
-    return admin.firestore();
-};
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+const dbRef = admin.firestore();
 
 const addRecord = async (dbCollection, data) => {
     dbRef.collection(dbCollection).add({
