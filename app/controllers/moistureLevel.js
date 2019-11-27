@@ -57,7 +57,7 @@ const getMoistureLevel = () => {
                     value: averageValue,
                     completelyWetValue: completelyWet,
                     completelyDryValue: completelyDry,
-                    soilDrynessPercentage: averageRawValue > 0 ? ((completelyWet / averageRawValue) * 100).toFixed(0) : 0,
+                    soilDrynessPercentage: averageRawValue > 0 ? ((averageRawValue / completelyWet) * 100).toFixed(0) : 0,
                 });
             });
         });
