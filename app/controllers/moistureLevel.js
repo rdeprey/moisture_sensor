@@ -7,26 +7,57 @@ const completelyWet = 395;
 const completelyDry = 780;
 const pumpRelay = new Gpio(17, 'high'); // IMPORTANT: Use 'high' if relay uses low level trigger
 
+const getSensorReadings = sensor => {
+    return new Promise((resolve, reject) => {
+        sensor.read((readError, reading) => {
+            if (readError) {
+                return reject(new Error(`There was an error getting the sensor reading:
+                    ${readError}`));
+            }
+
+            return resolve(reading);
+        });
+    });
+};
+
 const getMoistureLevel = () => {
+    const readingPromises = [];
+    let readings = {};
+    readings.rawValues = [];
+    readings.values = [];
+
     return new Promise((resolve, reject) => {
         const sensor = mcpadc.open(5, {speedHz: 20000}, (error) => {
             if (error) {
                 return reject(new Error(`There was an error accessing the sensor: ${error}`));
             }
 
-            sensor.read((readError, reading) => {
-                if (readError) {
-                    return reject(new Error(`There was an error getting the sensor reading:
-                        ${readError}`));
-                }
+            let iterator = 100; // Just need a large number of readings to try for better accuracy
 
+            while (iterator >= 0) {
+                readingPromises.push(getSensorReadings(sensor)
+                    .then(reading => {
+                        readings.rawValues.push(reading.rawValue);
+                        readings.values.push(reading.value);
+                    }).catch(error => {
+                        return reject(error);
+                    })
+                );
+
+                iterator--;
+            }
+
+            return Promise.all(readingPromises).then(() => {
+                const averageRawValue = readings.rawValues.reduce((a, b) => a + b, 0) / 100;
+                const averageValue = readings.values.reduce((a, b) => a + b, 0) / 100;
+    
                 // Set the value to a percentage based on the max reading
                 return resolve({
-                    rawValue: reading.rawValue,
-                    value: reading.value,
+                    rawValue: averageRawValue,
+                    value: averageValue,
                     completelyWetValue: completelyWet,
                     completelyDryValue: completelyDry,
-                    soilDrynessPercentage: reading.rawValue > 0 ? ((completelyWet / reading.rawValue) * 100).toFixed(0) : 0,
+                    soilDrynessPercentage: averageRawValue > 0 ? ((completelyWet / averageRawValue) * 100).toFixed(0) : 0,
                 });
             });
         });
