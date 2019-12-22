@@ -65,7 +65,7 @@ const getMoistureLevel = () => {
 };
 
 const shouldWater = (moistureLevel) => {
-    if (moistureLevel <= 0) {
+    if (moistureLevel <= 45) {
         return true;
     }
 
@@ -93,9 +93,10 @@ const waterThePlant = () => {
                 return reject(new Error(`There was an error getting the pump relay status: ${error}`));
             }
 
-            if (status !== 0) {
-                const moistureLevel = await getMoistureLevel();
+            const moistureLevel = await getMoistureLevel();
+            const needsWater = shouldWater(moistureLevel.soilDrynessPercentage);
 
+            if (status !== 0 && needsWater) {
                 pumpRelay.writeSync(0); // closes the circuit and starts the pump
                 Database.addRecord('wateringSchedule', {
                     soilDrynessPercentage: moistureLevel.soilDrynessPercentage
@@ -129,7 +130,7 @@ const stopWateringPlant = () => {
 
 const tellGoogleIfWateringIsNeeded = () => {
     return getMoistureLevel().then(level => {
-        if (level.soilDrynessPercentage < 30) {
+        if (level.soilDrynessPercentage < 45) {
             return resolve(`Yes, the plants could use watering. The current moisture level is ${level.soilDrynessPercentage}%.`);
         } else {
             return resolve(`No, the plants are doing well. The current moisture level is ${level.soilDrynessPercentage}%.`);
