@@ -32,7 +32,7 @@ const getMoistureLevel = () => {
                 return reject(new Error(`There was an error accessing the sensor: ${error}`));
             }
 
-            let iterator = 100; // Just need a large number of readings to try for better accuracy
+            let iterator = 50; // Just need a large number of readings to try for better accuracy
 
             while (iterator >= 0) {
                 readingPromises.push(getSensorReadings(sensor)
@@ -48,8 +48,8 @@ const getMoistureLevel = () => {
             }
 
             return Promise.all(readingPromises).then(() => {
-                const averageRawValue = readings.rawValues.reduce((a, b) => a + b, 0) / 100;
-                const averageValue = readings.values.reduce((a, b) => a + b, 0) / 100;
+                const averageRawValue = readings.rawValues.reduce((a, b) => a + b, 0) / 50;
+                const averageValue = readings.values.reduce((a, b) => a + b, 0) / 50;
     
                 // Set the value to a percentage based on the max reading
                 return resolve({
