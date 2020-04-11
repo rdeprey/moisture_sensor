@@ -5,6 +5,7 @@ const Database = require('./database');
 
 const completelyWet = 395;
 const completelyDry = 780;
+const valueRange = completelyDry - completelyWet;
 const pumpRelay = new Gpio(17, 'high'); // IMPORTANT: Use 'high' if relay uses low level trigger
 
 const getSensorReadings = sensor => {
@@ -57,7 +58,7 @@ const getMoistureLevel = () => {
                     value: averageValue,
                     completelyWetValue: completelyWet,
                     completelyDryValue: completelyDry,
-                    soilDrynessPercentage: averageRawValue > 0 ? ((averageRawValue / completelyWet) * 100).toFixed(0) : 0,
+                    soilDrynessPercentage: averageRawValue > 0 ? (((averageRawValue - valueRange) / valueRange) * 100).toFixed(0) : 0,
                 });
             });
         });
