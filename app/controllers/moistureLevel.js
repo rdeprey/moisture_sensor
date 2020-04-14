@@ -66,7 +66,7 @@ const getMoistureLevel = () => {
 };
 
 const shouldWater = (moistureLevel) => {
-    if (moistureLevel <= 45) {
+    if (moistureLevel >= 65) {
         return true;
     }
 
