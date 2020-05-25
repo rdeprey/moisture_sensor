@@ -11,6 +11,7 @@ const addRecord = async (dbCollection, data) => {
     dbRef.collection(dbCollection).add({
         "createdOn": new Date(),
         "soilDrynessPercentagePreWatering": data.soilDrynessPercentage,
+        "location": "golden pathos - self watering"
     }).then(ref => {	
         console.log('Added document with ID: ', ref);
     });
