@@ -18,7 +18,7 @@ const addRecord = async (dbCollection, data) => {
 }
 
 const getLastWateringData = async () => {
-    return await dbRef.collection("wateringSchedule").orderBy("createdOn", "desc").limit(1).get().then(querySnapshot => {
+    return await dbRef.collection("wateringSchedule").where("location", "==", "golden pathos - self watering").orderBy("createdOn", "desc").limit(1).get().then(querySnapshot => {
         let data = {};
         if (!querySnapshot.empty) {
           querySnapshot.forEach(snapshot => {
