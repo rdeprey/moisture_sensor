@@ -8,8 +8,8 @@ const moistureSensor = mcpadc.open(5, {speedHz: 20000}, (err) => {
   moistureSensor.read((err, reading) => {
     if (err) throw err;
       
-    while(true) {
+     while(true) {
       console.log('reading: ', reading.rawValue);
     }
-  });
+ });
 });

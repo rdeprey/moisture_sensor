@@ -2,14 +2,15 @@
 let dbRef = updateDatabase();
 
 // Setup the LCD panel
-var LCDPLATE, lcd;
-LCDPLATE = require('adafruit-i2c-lcd').plate;
-lcd = new LCDPLATE(1, 0x20);
+// var LCDPLATE, lcd;
+// LCDPLATE = require('adafruit-i2c-lcd').plate;
+// lcd = new LCDPLATE(1, 0x20);
 
 // Setup the sensor input
 const mcpadc = require('mcp-spi-adc');
 
 let value = -1;
+const maxReading = 481;
 
 const moistureSensor = mcpadc.open(5, {speedHz: 20000}, (err) => {
   if (err) throw err;
@@ -17,25 +18,26 @@ const moistureSensor = mcpadc.open(5, {speedHz: 20000}, (err) => {
   const getReading = function() {
     return moistureSensor.read((err, reading) => {
       if (err) {
-        lcd.close();
+//        lcd.close();
         throw err;
       }
 
       if (value !== reading.rawValue) {
-        value = reading.rawValue;
+        // Set the value to a percentage based on the max reading
+        value = ((reading.rawValue / maxReading) * 100).toFixed(0);
 
-        lcd.clear();
+  //      lcd.clear();
 
-        if (value >= 75) {
-          lcd.backlight(lcd.colors.GREEN);
-	  lcd.message("Happy: " + value.toString());
-        } else if (value >= 40 && value < 75) {
-	  lcd.backlight(lcd.colors.YELLOW);
-	  lcd.message("Okayish: " + value.toString());
-        } else {
-          lcd.backlight(lcd.colors.RED);
-  	  lcd.message("Thirsty: " + value.toString());
-        }
+  //      if (value >= 75) {
+  //        lcd.backlight(lcd.colors.GREEN);
+  //	  lcd.message("Happy: " + value.toString());
+  //      } else if (value >= 40 && value < 75) {
+  //	  lcd.backlight(lcd.colors.YELLOW);
+  //	  lcd.message("Okayish: " + value.toString());
+  //      } else {
+  //        lcd.backlight(lcd.colors.RED);
+  //	  lcd.message("Thirsty: " + value.toString());
+  //      }
 
         // Store the value in a Firebase Firestore database
         let docRef = dbRef.collection('moisture-levels').doc(new Date().toString());
@@ -53,7 +55,7 @@ const moistureSensor = mcpadc.open(5, {speedHz: 20000}, (err) => {
   };
 
   getReading();
-  setInterval(getReading, 28800000);
+  setInterval(getReading, 600000);
 });
 
 function updateDatabase() {
