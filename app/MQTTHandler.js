@@ -4,8 +4,6 @@ class MqttHandler {
   constructor() {
     this.mqttClient = null;
     this.host = 'mqtt://192.168.1.176';
-    this.username = 'pi4'; // mqtt credentials if these are needed to connect
-    this.password = '73258*Mrd!';
   }
   
   connect() {
