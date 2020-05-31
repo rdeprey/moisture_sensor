@@ -4,6 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var CheckStatus = require('./scheduled-tasks/checkStatus');
+var UpdateMqtt = require('./scheduled-tasks/updateMqtt');
 
 var indexRouter = require('./routes/index');
 
@@ -22,6 +23,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 
 CheckStatus.shouldWaterPlant();
+UpdateMqtt.updateMqtt();
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
