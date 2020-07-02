@@ -1,5 +1,6 @@
 const schedule = require('node-schedule');
 const MoistureLevel = require('../controllers/moistureLevel');
+const Database = require('../controllers/database');
 
 const shouldWaterPlant = () => {
     // Run every day at 7 a.m.
@@ -8,19 +9,9 @@ const shouldWaterPlant = () => {
         const moistureReading = await MoistureLevel.getMoistureLevel();
         const moistureLevel = moistureReading.soilDrynessPercentage;
 
-        // See if the soil dryness indicates that the plant needs watering
-        const shouldWater = MoistureLevel.shouldWater(moistureLevel);
-
-        if (shouldWater) {
-            // Water the plant for three seconds
-            setTimeout(() => {
-                MoistureLevel.waterThePlant();
-
-                setTimeout(() => {
-                    MoistureLevel.stopWateringPlant();
-                }, 3000);
-            }, 3000);
-        }
+        Database.addRecord('moisture-levels', {
+	    soilDrynessPercentage: moistureLevel
+	}); 
     });
 };
 

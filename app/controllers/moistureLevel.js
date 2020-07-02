@@ -28,7 +28,7 @@ const getMoistureLevel = () => {
     readings.values = [];
 
     return new Promise((resolve, reject) => {
-        const sensor = mcpadc.open(5, {speedHz: 20000}, (error) => {
+        const sensor = mcpadc.open(1, {speedHz: 20000}, (error) => {
             if (error) {
                 return reject(new Error(`There was an error accessing the sensor: ${error}`));
             }
@@ -51,7 +51,7 @@ const getMoistureLevel = () => {
             return Promise.all(readingPromises).then(() => {
                 const averageRawValue = readings.rawValues.reduce((a, b) => a + b, 0) / 50;
                 const averageValue = readings.values.reduce((a, b) => a + b, 0) / 50;
-    
+
                 // Set the value to a percentage based on the max reading
                 return resolve({
                     rawValue: averageRawValue,
