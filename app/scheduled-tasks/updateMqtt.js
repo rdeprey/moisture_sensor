@@ -1,5 +1,6 @@
 const schedule = require('node-schedule');
 const MoistureLevel = require('../controllers/moistureLevel');
+const TempHumidity = require('../controllers/tempAndHumidity');
 const mqttHandler = require('../MQTTHandler');
 
 const mqttClient = new mqttHandler();
@@ -12,7 +13,13 @@ const updateMqtt = () => {
         const data = await MoistureLevel.getMoistureLevel();
 
 	// Update MQTT
-	mqttClient.sendMessage(`golden-pathos: ${data.soilDrynessPercentage}`);
+	mqttClient.sendMoistureLevelMessage(`golden-pathos: ${data.soilDrynessPercentage}`);
+
+	// Get the latest temp and humidity data
+	const tempHumidity = await TempHumidity.getTemperatureAndHumidity();
+
+	// Update MQTT
+	mqttClient.sendTempHumidityMessage(`temperature: ${data.temperature.fahrenheit}, humidity: ${data.humidityPercentage}`);
     });
 };
 

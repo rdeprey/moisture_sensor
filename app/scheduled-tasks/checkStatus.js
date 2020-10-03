@@ -18,8 +18,8 @@ const shouldWaterPlant = () => {
 
                 setTimeout(() => {
                     MoistureLevel.stopWateringPlant();
-                }, 3000);
-            }, 3000);
+                }, 2000);
+            }, 2000);
         }
     });
 };

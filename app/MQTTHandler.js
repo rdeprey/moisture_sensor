@@ -27,8 +27,12 @@ class MqttHandler {
   }
 
   // Sends a mqtt message to topic: mytopic
-  sendMessage(message) {
+  sendMoistureLevelMessage(message) {
     this.mqttClient.publish('/plantSoilMoistureLevel', message);
+  }
+
+  sendTempHumidityMessage(message) {
+    this.mqttClient.publish('/tempAndHumidity', message);
   }
 }
 

@@ -12,7 +12,7 @@ mqttClient.connect();
 router.get('/get-moisture-level', function(req, res, next) {
   MoistureSensor.getMoistureLevel()
     .then(data => {
-      mqttClient.sendMessage(`golden-pathos: ${data.soilDrynessPercentage}`);
+      mqttClient.sendMoistureLevelMessage(`golden-pathos: ${data.soilDrynessPercentage}`);
       res.json({ 'reading': data });
     }).catch(error => {
       res.status(500).send(`There was an error: ${error}`);
@@ -22,6 +22,7 @@ router.get('/get-moisture-level', function(req, res, next) {
 router.get('/get-temp-humidity', function(req, res, next) {
   TempAndHumidity.getTemperatureAndHumidity()
     .then(data => {
+      mqttClient.sendTempHumidityMessage(`temperature: ${data.temperature.fahrenheit}, humidity: ${data.humidityPercentage}`);
       res.json(data);
     }).catch(error => {
       res.status(500).send(`There was an error: ${error}`);

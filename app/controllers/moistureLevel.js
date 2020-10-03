@@ -1,12 +1,14 @@
 // Setup the sensor input
 const mcpadc = require('mcp-spi-adc');
-const Gpio = require('onoff').Gpio;
 const Database = require('./database');
+const i2c = require('i2c-bus');
+
+// Relay pinouts: https://wiki.52pi.com/index.php/DockerPi_4_Channel_Relay_SKU:_EP-0099
+const relayAddress = 0x10;
 
 const completelyWet = 395;
 const completelyDry = 780;
 const valueRange = completelyDry - completelyWet;
-const pumpRelay = new Gpio(17, 'high'); // IMPORTANT: Use 'high' if relay uses low level trigger
 
 const getSensorReadings = sensor => {
     return new Promise((resolve, reject) => {
@@ -75,13 +77,19 @@ const shouldWater = (moistureLevel) => {
 
 const getWateringStatus = () => {
     return new Promise((resolve, reject) => {
-        pumpRelay.read((error, status) => {
-            if (error) {
-                return reject(new Error(`There was an error getting the pump relay status: ${error}`));
+        const pumpRelay = i2c.open(1, err => {
+            if (err) {
+                return reject(new Error(`There was an error opening the pump relay: ${err}`));
             }
+        
+            pumpRelay.readWord(relayAddress, 0x04, (err, rawData) => {
+                if (err) {
+                    return reject(new Error(`There was an error getting the pump relay status: ${err}`));
+                }
 
-            return resolve({
-                status: status === 0 ? 'WATERING' : 'NOT WATERING',
+                return resolve({
+                    status: rawData > 0 ? 'WATERING' : 'NOT WATERING',
+                });
             });
         });
     });
@@ -89,23 +97,35 @@ const getWateringStatus = () => {
 
 const waterThePlant = () => {
     return new Promise((resolve, reject) => {
-        pumpRelay.read(async (error, status) => {
-            if (error) {
-                return reject(new Error(`There was an error getting the pump relay status: ${error}`));
+        const pumpRelay = i2c.open(1, err => {
+            if (err) {
+                return reject(new Error(`There was an error opening the pump relay: ${err}`));
             }
+        
+            pumpRelay.readWord(relayAddress, 0x04, async (err, rawData) => {
+                if (err) {
+                    return reject(new Error(`There was an error getting the pump relay status: ${err}`));
+                }
 
-            const moistureLevel = await getMoistureLevel();
-            const needsWater = shouldWater(moistureLevel.soilDrynessPercentage);
+                const moistureLevel = await getMoistureLevel();
+                const needsWater = shouldWater(moistureLevel.soilDrynessPercentage);
+            
+                if (rawData === 0 && needsWater) {
+                    // closes the circuit and starts the pump
+                    pumpRelay.writeWord(relayAddress, 0x04, 0xFF, (err, data) => {
+                        if (err) {
+                            return reject(new Error(`There was an error starting the pump relay: ${err}`));
+                        }
 
-            if (status !== 0 && needsWater) {
-                pumpRelay.writeSync(0); // closes the circuit and starts the pump
-                Database.addRecord('wateringSchedule', {
-                    soilDrynessPercentage: moistureLevel.soilDrynessPercentage
+                        Database.addRecord('wateringSchedule', {
+                            soilDrynessPercentage: moistureLevel.soilDrynessPercentage
+                        });
+                    });
+                }
+
+                return resolve({
+                    status: `The plant is being watered.`,
                 });
-            }
-
-            return resolve({
-                status: `The plant is being watered.`,
             });
         });
     });
@@ -113,17 +133,27 @@ const waterThePlant = () => {
 
 const stopWateringPlant = () => {
     return new Promise((resolve, reject) => {
-        pumpRelay.read((error, status) => {
-            if (error) {
-                return reject(new Error(`There was an error getting the pump relay status: ${error}`));
+        const pumpRelay = i2c.open(1, err => {
+            if (err) {
+                return reject(new Error(`There was an error opening the pump relay: ${err}`));
             }
+        
+            pumpRelay.readWord(relayAddress, 0x04, (err, rawData) => {
+                if (err) {
+                    return reject(new Error(`There was an error getting the pump relay status: ${err}`));
+                }
+            
+                if (rawData > 0) {
+                    pumpRelay.writeWord(relayAddress, 0x04, 0x00, (err, data) => {
+                        if (err) {
+                            return reject(new Error(`There was an error stopping the pump relay: ${err}`));
+                        }
+                    });
+                }
 
-            if (status !== 1) {
-                pumpRelay.writeSync(1); // opens the circuit and stops the pump
-            }
-
-            return resolve({
-                status: `The plant is not being watered.`,
+                return resolve({
+                    status: `The plant is not being watered.`,
+                });
             });
         });
     });
