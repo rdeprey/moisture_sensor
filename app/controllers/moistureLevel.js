@@ -82,7 +82,7 @@ const getWateringStatus = () => {
                 return reject(new Error(`There was an error opening the pump relay: ${err}`));
             }
         
-            pumpRelay.readWord(relayAddress, 0x01, (err, rawData) => {
+            pumpRelay.readWord(relayAddress, 0x04, (err, rawData) => {
                 if (err) {
                     return reject(new Error(`There was an error getting the pump relay status: ${err}`));
                 }
@@ -102,7 +102,7 @@ const waterThePlant = () => {
                 return reject(new Error(`There was an error opening the pump relay: ${err}`));
             }
         
-            pumpRelay.readWord(relayAddress, 0x01, async (err, rawData) => {
+            pumpRelay.readWord(relayAddress, 0x04, async (err, rawData) => {
                 if (err) {
                     return reject(new Error(`There was an error getting the pump relay status: ${err}`));
                 }
@@ -110,9 +110,9 @@ const waterThePlant = () => {
                 const moistureLevel = await getMoistureLevel();
                 const needsWater = shouldWater(moistureLevel.soilDrynessPercentage);
             
-                if (rawData === 0 && needsWater) {
+                if (rawData > 0 && needsWater) {
                     // closes the circuit and starts the pump
-                    pumpRelay.writeWord(relayAddress, 0x01, 0xFF, (err, data) => {
+                    pumpRelay.writeWord(relayAddress, 0x04, 0x00, (err, data) => {
                         if (err) {
                             return reject(new Error(`There was an error starting the pump relay: ${err}`));
                         }
@@ -142,13 +142,13 @@ const stopWateringPlant = () => {
                 return reject(new Error(`There was an error opening the pump relay: ${err}`));
             }
         
-            pumpRelay.readWord(relayAddress, 0x01, (err, rawData) => {
+            pumpRelay.readWord(relayAddress, 0x04, (err, rawData) => {
                 if (err) {
                     return reject(new Error(`There was an error getting the pump relay status: ${err}`));
                 }
             
-                if (rawData > 0) {
-                    pumpRelay.writeWord(relayAddress, 0x01, 0x00, (err, data) => {
+                if (rawData === 0) {
+                    pumpRelay.writeWord(relayAddress, 0x04, 0xFF, (err, data) => {
                         if (err) {
                             return reject(new Error(`There was an error stopping the pump relay: ${err}`));
                         }
