@@ -8,18 +8,21 @@ mqttClient.connect();
 
 const updateMqtt = () => {
     // Run every 10 minutes
+    const rule = new schedule.RecurrenceRule();
+    rule.minute = 10;
+
     return schedule.scheduleJob('*/10 * * * *', async () => {
         // Check the soil dryness level
         const data = await MoistureLevel.getMoistureLevel();
 
-	// Update MQTT
-	mqttClient.sendMoistureLevelMessage(`golden-pathos: ${data.soilDrynessPercentage}`);
+        // Update MQTT
+        mqttClient.sendMoistureLevelMessage(`golden-pathos: ${data.soilDrynessPercentage}`);
 
-	// Get the latest temp and humidity data
-	const tempHumidity = await TempHumidity.getTemperatureAndHumidity();
+        // Get the latest temp and humidity data
+        const tempHumidity = await TempHumidity.getTemperatureAndHumidity();
 
-	// Update MQTT
-	mqttClient.sendTempHumidityMessage(`temperature: ${data.temperature.fahrenheit}, humidity: ${data.humidityPercentage}`);
+        // Update MQTT
+        mqttClient.sendTempHumidityMessage(`temperature: ${tempHumidity.temperature.fahrenheit}, humidity: ${tempHumidity.humidityPercentage}`);
     });
 };
 

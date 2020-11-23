@@ -35,7 +35,7 @@ const getMoistureLevel = () => {
                 return reject(new Error(`There was an error accessing the sensor: ${error}`));
             }
 
-            let iterator = 50; // Just need a large number of readings to try for better accuracy
+            let iterator = 100; // Just need a large number of readings to try for better accuracy
 
             while (iterator >= 0) {
                 readingPromises.push(getSensorReadings(sensor)
@@ -51,8 +51,8 @@ const getMoistureLevel = () => {
             }
 
             return Promise.all(readingPromises).then(() => {
-                const averageRawValue = readings.rawValues.reduce((a, b) => a + b, 0) / 50;
-                const averageValue = readings.values.reduce((a, b) => a + b, 0) / 50;
+                const averageRawValue = readings.rawValues.reduce((a, b) => a + b, 0) / 100;
+                const averageValue = readings.values.reduce((a, b) => a + b, 0) / 100;
     
                 // Set the value to a percentage based on the max reading
                 return resolve({
@@ -68,7 +68,7 @@ const getMoistureLevel = () => {
 };
 
 const shouldWater = (moistureLevel) => {
-    if (moistureLevel >= 55) {
+    if (moistureLevel <= 55) {
         return true;
     }
 
@@ -82,7 +82,7 @@ const getWateringStatus = () => {
                 return reject(new Error(`There was an error opening the pump relay: ${err}`));
             }
         
-            pumpRelay.readWord(relayAddress, 0x04, (err, rawData) => {
+            pumpRelay.readWord(relayAddress, 0x01, (err, rawData) => {
                 if (err) {
                     return reject(new Error(`There was an error getting the pump relay status: ${err}`));
                 }
@@ -102,7 +102,7 @@ const waterThePlant = () => {
                 return reject(new Error(`There was an error opening the pump relay: ${err}`));
             }
         
-            pumpRelay.readWord(relayAddress, 0x04, async (err, rawData) => {
+            pumpRelay.readWord(relayAddress, 0x01, async (err, rawData) => {
                 if (err) {
                     return reject(new Error(`There was an error getting the pump relay status: ${err}`));
                 }
@@ -112,7 +112,7 @@ const waterThePlant = () => {
             
                 if (rawData === 0 && needsWater) {
                     // closes the circuit and starts the pump
-                    pumpRelay.writeWord(relayAddress, 0x04, 0xFF, (err, data) => {
+                    pumpRelay.writeWord(relayAddress, 0x01, 0xFF, (err, data) => {
                         if (err) {
                             return reject(new Error(`There was an error starting the pump relay: ${err}`));
                         }
@@ -121,10 +121,14 @@ const waterThePlant = () => {
                             soilDrynessPercentage: moistureLevel.soilDrynessPercentage
                         });
                     });
+
+                    return resolve({
+                        status: `The plant is being watered.`,
+                    });
                 }
 
                 return resolve({
-                    status: `The plant is being watered.`,
+                    status: `The plant doesn't need watering.`,
                 });
             });
         });
@@ -138,13 +142,13 @@ const stopWateringPlant = () => {
                 return reject(new Error(`There was an error opening the pump relay: ${err}`));
             }
         
-            pumpRelay.readWord(relayAddress, 0x04, (err, rawData) => {
+            pumpRelay.readWord(relayAddress, 0x01, (err, rawData) => {
                 if (err) {
                     return reject(new Error(`There was an error getting the pump relay status: ${err}`));
                 }
             
                 if (rawData > 0) {
-                    pumpRelay.writeWord(relayAddress, 0x04, 0x00, (err, data) => {
+                    pumpRelay.writeWord(relayAddress, 0x01, 0x00, (err, data) => {
                         if (err) {
                             return reject(new Error(`There was an error stopping the pump relay: ${err}`));
                         }
