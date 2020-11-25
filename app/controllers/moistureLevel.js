@@ -68,7 +68,7 @@ const getMoistureLevel = () => {
 };
 
 const shouldWater = (moistureLevel) => {
-    if (moistureLevel <= 55) {
+    if (moistureLevel >= 55) {
         return true;
     }
 
@@ -109,10 +109,12 @@ const waterThePlant = () => {
 
                 const moistureLevel = await getMoistureLevel();
                 const needsWater = shouldWater(moistureLevel.soilDrynessPercentage);
-            
-                if (rawData > 0 && needsWater) {
+            console.log("raw: ", rawData);
+            console.log("needs water? ", needsWater);
+            console.log("dryness ", moistureLevel.soilDrynessPercentage);
+               if (rawData === 0 && needsWater) {
                     // closes the circuit and starts the pump
-                    pumpRelay.writeWord(relayAddress, 0x04, 0x00, (err, data) => {
+                    pumpRelay.writeWord(relayAddress, 0x04, 0xFF, (err, data) => {
                         if (err) {
                             return reject(new Error(`There was an error starting the pump relay: ${err}`));
                         }
@@ -125,7 +127,7 @@ const waterThePlant = () => {
                     return resolve({
                         status: `The plant is being watered.`,
                     });
-                }
+               }
 
                 return resolve({
                     status: `The plant doesn't need watering.`,
@@ -147,8 +149,8 @@ const stopWateringPlant = () => {
                     return reject(new Error(`There was an error getting the pump relay status: ${err}`));
                 }
             
-                if (rawData === 0) {
-                    pumpRelay.writeWord(relayAddress, 0x04, 0xFF, (err, data) => {
+                if (rawData > 0) {
+                    pumpRelay.writeWord(relayAddress, 0x04, 0x00, (err, data) => {
                         if (err) {
                             return reject(new Error(`There was an error stopping the pump relay: ${err}`));
                         }
